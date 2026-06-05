@@ -1,20 +1,19 @@
 <?php namespace KnightSwarm\LaravelSaml;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Cookie;
 
-use \Saml;
-use \User;
-use \Auth;
-use \Cookie;
-use \Config;
-
-class Account {
-
-    protected function getUserIdProperty() {
-        return Config::get('laravel-saml::saml.internal_id_property', 'email');
+class Account
+{
+    protected function getUserIdProperty()
+    {
+        return Config::get("laravel-saml.internal_id_property", "email");
     }
 
-    protected function getSamlIdProperty() {
-        return Config::get('laravel-saml::saml.saml_id_property', 'email');
+    protected function getSamlIdProperty()
+    {
+        return Config::get("laravel-saml.saml_id_property", "email");
     }
     /**
      * Check if the id exists in the specified user property.
@@ -23,43 +22,44 @@ class Account {
     public function IdExists($id)
     {
         $property = $this->getUserIdProperty();
-        $user = User::where($property, "=", $id)->count();
+        $user = \User::where($property, "=", $id)->count();
         return $user === 0 ? false : true;
     }
 
     public function samlLogged()
     {
-        return Saml::isAuthenticated();
+        return \Saml::isAuthenticated();
     }
 
     public function samlLogin()
     {
-        Saml::requireAuth();
+        \Saml::requireAuth();
     }
 
     public function laravelLogin($id)
     {
         if ($this->IdExists($id)) {
             $property = $this->getUserIdProperty();
-            $userid = (int)User::where($property, "=", $id)->take(1)->get()[0]->id;
-            Auth::login(User::find($userid));
+            $userid = (int) \User::where($property, "=", $id)->take(1)->get()[0]
+                ->id;
+            Auth::login(\User::find($userid));
         }
     }
 
     public function getSamlAttribute($attribute)
     {
-        $data = Saml::getAttributes();
+        $data = \Saml::getAttributes();
         return $data[$attribute][0];
     }
 
     public function getSamlUniqueIdentifier()
     {
-        return $this->getSamlAttribute($this->getSamlIdProperty()); 
+        return $this->getSamlAttribute($this->getSamlIdProperty());
     }
 
     public function getSamlName()
     {
-        return $data['SAML_FIRST_NAME'][0] . ' ' . $data['SAML_LAST_NAME'][0];
+        return $data["SAML_FIRST_NAME"][0] . " " . $data["SAML_LAST_NAME"][0];
     }
 
     public function laravelLogged()
@@ -73,16 +73,15 @@ class Account {
      */
     protected function fillUserDetails($user)
     {
-         $mappings = Config::get('laravel-saml::saml.object_mappings',[]);
-         foreach($mappings as $key => $mapping)
-         {
-             $user->{$key} = $this->getSamlAttribute($mapping);
-         }
+        $mappings = Config::get("laravel-saml.object_mappings", []);
+        foreach ($mappings as $key => $mapping) {
+            $user->{$key} = $this->getSamlAttribute($mapping);
+        }
     }
 
     public function createUser()
     {
-        $user = new User();
+        $user = new \User();
         $user->{$this->getUserIdProperty()} = $this->getSamlUniqueIdentifier();
         $this->fillUserDetails($user);
         $user->save();
@@ -92,7 +91,7 @@ class Account {
     public function logout()
     {
         Auth::logout();
-        $auth_cookie = Cookie::forget('SimpleSAMLAuthToken');
+        $auth_cookie = Cookie::forget("SimpleSAMLAuthToken");
         return $auth_cookie;
     }
 }

@@ -1,7 +1,12 @@
 {
     "name": "knight-swarm/laravel-saml",
     "description": "saml auth provider for laravel 5.*",
-    "keywords": ["saml", "laravel", "laravel-saml", "sso"],
+    "keywords": [
+        "saml",
+        "laravel",
+        "laravel-saml",
+        "sso"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -23,7 +28,13 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "illuminate/support": ">=4.1"
+        "illuminate/support": "~5.0"
+    },
+    "require-dev": {
+        "illuminate/support": "~5.0",
+        "illuminate/auth": "~5.0",
+        "illuminate/config": "~5.0",
+        "illuminate/cookie": "~5.0"
     },
     "autoload": {
         "classmap": [
@@ -33,5 +44,18 @@
             "KnightSwarm\\LaravelSaml": "src/"
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "config": {
+        "platform": {
+            "php": "7.1.33"
+        },
+        "audit": {
+            "abandoned": "ignore"
+        },
+        "policy": {
+            "advisories": {
+                "block": false
+            }
+        }
+    }
 }
