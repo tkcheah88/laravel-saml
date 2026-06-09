@@ -15,6 +15,15 @@ class Account
     {
         return Config::get("laravel-saml.saml_id_property", "email");
     }
+
+    protected function getUserModel()
+    {
+        return Config::get("saml.sp_user_model_class") ?:
+            Config::get("laravel-saml.sp_user_model_class") ?:
+            Config::get("auth.providers.users.model") ?:
+            "\App\User";
+    }
+
     /**
      * Check if the id exists in the specified user property.
      * If no property is defined default to 'email'.
@@ -22,7 +31,7 @@ class Account
     public function IdExists($id)
     {
         $property = $this->getUserIdProperty();
-        $user = \User::where($property, "=", $id)->count();
+        $user = $this->getUserModel()::where($property, "=", $id)->count();
         return $user === 0 ? false : true;
     }
 
@@ -40,9 +49,11 @@ class Account
     {
         if ($this->IdExists($id)) {
             $property = $this->getUserIdProperty();
-            $userid = (int) \User::where($property, "=", $id)->take(1)->get()[0]
-                ->id;
-            Auth::login(\User::find($userid));
+            $userid = (int) $this->getUserModel()
+                ::where($property, "=", $id)
+                ->take(1)
+                ->get()[0]->id;
+            Auth::login($this->getUserModel()::find($userid));
         }
     }
 
@@ -81,7 +92,7 @@ class Account
 
     public function createUser()
     {
-        $user = new \User();
+        $user = new $this->getUserModel();
         $user->{$this->getUserIdProperty()} = $this->getSamlUniqueIdentifier();
         $this->fillUserDetails($user);
         $user->save();
